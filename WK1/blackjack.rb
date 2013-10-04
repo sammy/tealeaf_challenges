@@ -56,6 +56,9 @@ def calculate_total(hand,player,numeric_hand=[],sum=0)
 
       end
 
+    elsif card == 'A' && player =='d'
+      numeric_hand << 11
+
     else
       numeric_hand << card.to_i
     end
@@ -63,6 +66,12 @@ def calculate_total(hand,player,numeric_hand=[],sum=0)
   end
 
   numeric_hand.each { |num| sum+=num }
+
+  if player == 'd'
+    numeric_hand.select { |e| e == 11 }.count.times do
+      sum -= 10 if sum > 21
+    end
+  end
 
   sum
 
@@ -72,7 +81,7 @@ end
 puts 'Welcome to BlackJack'
 puts '--------------------'
 print 'What is your name? :'
-player = gets.chomp
+player = gets.chomp.capitalize
 
 game = 'on'
 game_state = 'start'
@@ -90,9 +99,9 @@ while game == 'on'
   end
 
   #
+  puts ""
+  puts "Hi #{player}, you have been dealt #{player_hand.first}  #{player_hand.last}"
 
-  puts "Hi #{player}, you have been dealt #{player_hand.first}  #{player_hand.last} "
-  
   sum_player = calculate_total(player_hand,'p')
   sum_dealer = calculate_total(dealer_hand,'d')
 
@@ -100,16 +109,20 @@ while game == 'on'
 
   while game_state == 'player_round'
 
+    print 'Your hand now consists of: '
     player_hand.each { |card| print card + ' ' }
-    puts ''
+    puts " with a sum of #{sum_player}"
+    puts "---------------------------------------------"
     puts "#{player} would you like to (h)it or (s)tay ?"
-    
+    puts "---------------------------------------------"
+    print "(h/s):"
     input = gets.chomp
     
     if input.downcase == 'h'
       player_hand << deck.pop
-      sum_player = calculate_total(player_hand,'p')
       puts "#{player}, you have been dealt #{player_hand.last}"
+      sum_player = calculate_total(player_hand,'p')
+      
 
       if sum_player > 21 
         puts "#{sum_player} Busted!!. Dealer wins"
@@ -120,8 +133,12 @@ while game == 'on'
       end
 
     elsif input.downcase == 's'
-      print "Your sum now is: #{sum_player} and your hand is "
+      print "#{player} your sum now is: #{sum_player} and your hand is "
       player_hand.each { |card| print card + ' ' }
+      puts ""
+      puts "*************************************************"
+      puts "Dealers Turn"
+      puts ""
       game_state = 'dealer_round'
       # binding.pry
     end
@@ -130,14 +147,19 @@ while game == 'on'
   while game_state == 'dealer_round'
 
     sum_dealer = calculate_total(dealer_hand,'d')
+    print "Dealer hand:"
+    dealer_hand.each { |card| print card + ' ' }
+    print " with a total of #{sum_dealer}"
+    puts ""
 
-        
     while sum_dealer < 18
       puts "Dealer Draws"
       dealer_hand << deck.pop
       sum_dealer = calculate_total(dealer_hand,'d')
       print "Dealer hand:"
       dealer_hand.each { |card| print card + ' ' }
+      print " | Sum: #{sum_dealer}"
+      puts ""
     end
 
     while rand(10).odd? && sum_dealer < 21
@@ -146,19 +168,19 @@ while game == 'on'
       sum_dealer = calculate_total(dealer_hand,'d')
       print "Dealer hand:"
       dealer_hand.each { |card| print card + ' ' }
+      print " | Sum: #{sum_dealer}"
+      puts ""
     end
 
     if sum_dealer > 21
-      puts "Dealer busted. #{player} wins"
+      puts "Dealer busted with #{sum_dealer}. #{player} wins"
       game_state = 'end_of_game'
-      print "Dealer hand:"
-      dealer_hand.each { |card| print card + ' ' }
+      puts "-----------------------------"
+      #print "Dealer hand:"
+      #dealer_hand.each { |card| print card + ' ' }
     elsif sum_dealer == 21
       puts "BlackJack for the dealer. Dealer wins!!"
-      dealer_hand.each { |card| print card }
       game_state = 'end_of_game'
-      print "Dealer hand:"
-      dealer_hand.each { |card| print card + ' ' }
     elsif sum_dealer < 21
       if sum_dealer > sum_player
         puts "Dealer with #{sum_dealer} wins #{player} with #{sum_player}"
@@ -177,7 +199,9 @@ while game == 'on'
 
     if gets.chomp.downcase == 'start'
       game_state = 'start'
-    else game = 'off'
+    else 
+      game_state = 'off'
+      game = 'off'
     end
 
   end
